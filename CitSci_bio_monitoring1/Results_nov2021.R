@@ -272,3 +272,189 @@ p <- sankeyNetwork(Links = links1, Nodes = nodes,
 p
 
 
+# Box figures
+# updated: December 10th, 2021
+
+
+library(tidyverse)
+library(ggrepel)
+library(MASS)
+library(ggrepel)
+library(countrycode)
+library(gridExtra)
+library(ggsci)
+library(ggpubr)
+
+data<-read.csv("~/GitHub/Citizenscience_paper/CitSci_bio_monitoring1/data/data_clean_nov10.csv")
+data$Country<-str_to_title(data$Country)
+#data$Countrycode<-countrycode(data$Country_caps, origin = "country.name", destination = "ioc")
+#data$Countrycode<-ifelse(is.na(data$Countrycode), data$Country_caps, data$Countrycode)
+
+# group data by country
+by_country<-data %>%
+  group_by(Country) %>% 
+  summarise(n_proj = n_distinct(citsci_proj_ID),
+            n_studies = n_distinct(row_ID),
+            n_Articles = n_distinct(Article))
+
+#kendall correlation (non parametric)
+cor.test( ~ n_proj + n_Articles,
+          data = by_country,
+          method = "kendall",
+          continuity = TRUE,
+          conf.level = 0.95)
+
+library(mblm)
+library(mgcv)
+#Kendall-Thein Sen Siegel nonparametric linear regression
+model_k<-mblm(n_proj ~ n_Articles,
+              data = by_country)
+summary(model_k)
+
+
+# plot function (https://sejohnston.com/2012/08/09/a-quick-and-easy-function-to-plot-lm-results-in-r/)
+# visualize residuals (https://drsimonj.svbtle.com/visualising-residuals)
+
+
+
+fit<-lm(n_proj~n_Articles, data = by_country)
+plot_data<-by_country
+
+
+plot_data$predicted<-predict(fit)
+plot_data$residuals<-residuals(fit)
+plot_data$studres<-studres(fit)
+
+# Get outliers (defined as having a studentized residuals >3 or < -3)
+studres_labels<-filter(plot_data, studres>3 |studres< (-3))
+plot_data<-mutate(plot_data, type = ifelse(studres>3 |studres< (-3), 'Outlier', 'Non-outlier'))
+
+# Get df with points needing labels. 
+USA_lab<-dplyr::filter(plot_data,(Country=="United States"))
+UK_lab<-dplyr::filter(plot_data, (Country=="United Kingdom")) 
+SA_lab<-dplyr::filter(plot_data,(Country=="South Africa"))
+Den_lab<-dplyr::filter(plot_data,(Country=="Denmark"))
+
+regression<- ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit$model)[1])) + 
+  geom_smooth(method = "lm", se = TRUE, color = "black") + #model line with grey se
+  
+  geom_jitter(aes(color = plot_data$type),
+              size = 2,alpha = 0.5) + # Color and size mapped here. Size can be changed to: abs(plot_data$residuals))
+  scale_color_manual("Study Location",values = c("Outlier" = "red", "Non-outlier" = "black"))+
+  coord_fixed(2)+
+  
+  xlim(c(-12,85))+
+  
+  theme_classic(base_family = "serif") + # Add theme for cleaner look
+  theme(legend.position = "right",
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12))+
+  
+  
+  geom_text(data = USA_lab, aes(label = Country),
+            family = "serif",
+            size = 3.5,
+            hjust =1.05)+
+  
+  geom_text(data = UK_lab, aes(label = Country),
+            family = "serif",
+            size = 3.5,
+            hjust =1.1)+
+  
+  geom_text(data = SA_lab, aes(label = Country),
+            family = "serif",
+            size = 3.5,
+            hjust =-.05)+
+  
+  geom_text(data = Den_lab, aes(label = Country),
+            family = "serif",
+            size = 3.5,
+            vjust =-0.6,
+            hjust = .9)+
+  
+  
+  labs(#title = paste("Adj R2 = ",signif(summary(fit)$adj.r.squared, 5),
+    #      "Intercept =",signif(fit$coef[[1]],5 ),
+    #      " Slope =",signif(fit$coef[[2]], 5),
+    #      " P =",signif(summary(fit)$coef[2,4], 5),
+    #      "\nCall = ", fit$call, "(", names(fit$model)[1],"~", names(fit$model)[2], ")"),
+    x = "Number of articles reviewed",
+    y = "Number of unique community science projects")
+
+regression
+
+
+ggsave(filename = "figures/Box_regression.png",
+       width =5, height = 6) 
+
+
+
+
+# format data long version for Denmark and SA 
+# identify species of conservation concern.
+status_data<-filter(data, (Country == "Denmark")|(Country == "South Africa")) %>%
+  mutate(status = ifelse(is.na(Sp_status), "not reported", "of conservation concern")) %>% 
+  group_by(Country, Taxon, status) %>%
+  summarize(article_count = n_distinct(Article),
+            project_count = n_distinct(citsci_proj_ID)) 
+
+
+order_status<-c("of conservation concern", "not reported")
+
+
+# new facet label names for Countries
+names_top<-list('Denmark'= "a) Denmark",
+                'South Africa'= "b) South Africa")
+top_labeller<-function(variable, value){
+  return(names_top[value])
+}
+
+names_bottom<-list('Denmark'= "c) Denmark",
+                   'South Africa'= "d) South Africa")
+bottom_labeller<-function(variable, value){
+  return(names_bottom[value])
+}
+
+
+a_count<-ggplot(status_data, aes(Taxon, article_count, fill = status))+
+  geom_col(position = "stack")+
+  theme_classic(base_family = "serif")+
+  theme(strip.background = element_blank(),
+        text = element_text(size = 12),
+        axis.text.x = element_text(size = 10,angle = 45, hjust =1),
+        panel.spacing = unit(2, "lines"))+
+  labs(fill = "species status")+
+  xlab("")+
+  ylab("Number of articles reviewed")+
+  scale_fill_manual(values = c("4DBBD5FF","red"))+
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,15))+
+  facet_grid(.~Country,
+             labeller = top_labeller)
+
+p_count<-ggplot(status_data, aes(Taxon, project_count, fill = status))+
+  geom_col(position = "stack")+
+  theme_classic(base_family = "serif")+
+  theme(strip.background = element_blank(),
+        text = element_text(size = 12),
+        axis.text.x = element_text(size = 10,angle = 45, hjust =1),
+        panel.spacing = unit(2, "lines"))+
+  labs(fill = "species status")+
+  xlab("")+
+  ylab("Number of unique community science projects")+
+  scale_fill_manual(values = c("4DBBD5FF","red"))+
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,5))+
+  facet_grid(.~Country,
+             labeller = bottom_labeller)
+ggarrange(a_count, p_count, ncol = 1, nrow = 2,
+          common.legend = TRUE, legend="right")
+
+ggsave(filename = "figures/Box_bars.png",
+       width =5, height = 6) 
+
+
+
+
