@@ -194,6 +194,8 @@ dev.off()
 #### Figure 4 ####
 
 library(networkD3)
+library(tidyverse)
+load("data/data_clean_nov10.RData")
 
 #mypal3 = pal_npg("nrc", alpha = 1)(13)
 #https://www.r-graph-gallery.com/322-custom-colours-in-sankey-diagram.html
@@ -220,37 +222,81 @@ links1$value <- rep(1, length(links1$article))
 
 #save(links1, file="data/outputs/sankey_data.RData")
 
-library("RColorBrewer")
-#brewer.pal(n = 14, name = "RdBu")
-nb.cols <- 14
-mycolors <- colorRampPalette(brewer.pal(8, "RdBu"))(nb.cols)
-display.brewer.pal(mycolors)
 
-# Make the Network
+library("RColorBrewer")
+threat_col <- brewer.pal(n = 7, name = "YlOrRd")
+resp_col <- brewer.pal(n = 7, name = "GnBu")
+#YlOrRd
+#GnBu
+
+#nb.cols <- 14
+#mycolors <- colorRampPalette(brewer.pal(8, "RdBu"))(nb.cols)
+#display.brewer.pal(threat_col)
+
+nodes$group <- gsub(" ", "-", nodes$name)
+
+nodes$name <- gsub("Abundance And Trends", "Abundance and Trends", nodes$name)
+nodes$name <- gsub("Distribution And Range Shifts", "Distribution and Range Shifts", nodes$name)
+
+
+#https://stackoverflow.com/questions/48459033/sankey-network-manual-colour-change
+
+ColourScale <- 'd3.scaleOrdinal()
+            .domain(["Habitat-Loss","Climate-Change","No-Threat","Invasives","Infectious-Diseases","Biocontaminants","Harvesting","Abundance-And-Trends","Distribution-And-Range-Shifts","No-Response","Phenology","Life-History-Evolution","Richness,-Diversity,-Community-Composition","Genetics"])
+           .range(["#800026","#fc4e2a","#bd0026","#feb24c","#fed976","#ffffcc","#ffffcc","#293e47", "#1b292f","#87ceeb","#5f90a5","#517c8d","#36525E","#6ca5bc"]);'
+
 p <- sankeyNetwork(Links = links1, Nodes = nodes,
                    Source = "IDsource", Target = "IDtarget",
                    Value = "value", 
-                   NodeID = "name",
-                   fontSize = 18,
-                   sinksRight=F,
-                   colourScale = JS(
-                     'd3.scaleOrdinal()
-                     .domain(["Habitat Loss","Climate Change","No Threat","Invasives","Infectious Diseases","Biocontaminants","Harvesting""Abundance And Trends","Distribution And Range Shifts","No Response","Phenology","Life-History Evolution","Richness, Diversity, Community Composition","Genetics"])
-                     .range(["#B2182B","#C53E3D","#D86551","#E88A6D","#F5AD8C","#FACAB1","#F2DDD0","#DBE2E6","#BDDBEA","#9BC9E0","#73B1D3","#4996C5","#337EB8", "#2166AC"])'))
+                   NodeID = "name", 
+                   fontSize = 16,
+                   colourScale = JS(ColourScale),
+                   NodeGroup = "group",
+                   sinksRight=FALSE)
 p
 
-onRender(
+library(htmlwidgets)
+
+#https://stackoverflow.com/questions/61172342/pushing-left-labels-to-the-left-of-the-nodes-in-sankey-diagram
+
+nodes$target <- c(rep(TRUE,7),rep(FALSE,7))
+
+p$x$nodes$target <- nodes$target
+
+q <- onRender(
   p,
   '
   function(el, x) {
-    d3.selectAll(".node text").attr("text-anchor", "send").attr("x", 20);
+    d3.selectAll(".node text")
+    .filter(d => d.target)
+    .attr("text-anchor", "end")
+    .attr("x", -6);
   }
   '
 )
 
-#png("figure3.png", height = 11.5, width = 8, units="in", res = 300)
-#p
-#dev.off()
+#doesnt work 
+png("figure3.png", height = 8, width = 11.5, units="in", res = 300)
+onRender(
+  p,
+  '
+  function(el, x) {
+    d3.selectAll(".node text")
+    .filter(d => d.target)
+    .attr("text-anchor", "end")
+    .attr("x", -6);
+  }
+  '
+)
+dev.off()
+
+#also not working
+library(webshot)
+
+webshot::install_phantomjs()
+
+saveWidget(q, "temp.html")
+webshot("temp.html", "sankey_widget.png")
 
 
 
@@ -263,11 +309,21 @@ nodes <- data.frame(
          as.character(links1$response)) %>% unique()
 )
 
+#nodes$id <- 0:(nrow(nodes) - 1)
+
+nodes$group <- gsub(" ", "-", nodes$name)
+
+ColourScale <- 'd3.scaleOrdinal()
+            .domain(["Habitat-Loss","Climate-Change","No-Threat","Invasives","Infectious-Diseases","Biocontaminants","Harvesting","Abundance-And-Trends","Distribution-And-Range-Shifts","No-Response","Phenology","Life-History-Evolution","Richness,-Diversity,-Community-Composition","Genetics"])
+           .range(["#800026","#fc4e2a","#bd0026","#feb24c","#fed976","#ffffcc","#ffffcc","#293e47", "#1b292f","#87ceeb","#5f90a5","#517c8d","#36525E","#6ca5bc"]);'
+
 p <- sankeyNetwork(Links = links1, Nodes = nodes,
                    Source = "IDsource", Target = "IDtarget",
                    Value = "value", 
                    NodeID = "name", 
                    fontSize = 16,
+                   colourScale = JS(ColourScale),
+                   NodeGroup = "group",
                    sinksRight=FALSE)
 p
 
