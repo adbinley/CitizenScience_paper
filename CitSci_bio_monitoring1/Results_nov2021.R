@@ -333,7 +333,7 @@ p
 
 
 ####  Box figures #### 
-# updated: December 10th, 2021
+# updated: January 31 2022
 
 
 library(tidyverse)
@@ -460,7 +460,7 @@ status_data<-filter(data, (Country == "Denmark")|(Country == "South Africa")) %>
   summarize(article_count = n_distinct(Article),
             project_count = n_distinct(citsci_proj_ID)) 
 
-
+status_data$Taxon[status_data$Taxon == "all"] <- "multi-taxa"
 order_status<-c("threatened", "non-threatened")
 
 
