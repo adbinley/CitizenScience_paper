@@ -484,9 +484,11 @@ a_count<-ggplot(status_data, aes(Taxon, article_count, fill = status))+
   theme(strip.background = element_blank(),
         text = element_text(size = 12),
         axis.text.x = element_text(size = 10,angle = 45, hjust =1),
+        axis.title = element_text(size = 10),
+        axis.title.y = element_text(margin = margin(t = 0, r = 25, b = 0, l = 0)),
         panel.spacing = unit(2, "lines"))+
   labs(fill = "species status")+
-  xlab("")+
+  xlab("Focal taxa")+
   ylab("Number of articles reviewed")+
   scale_fill_manual(values = c("#4DBBD5FF", "#E64B35FF"))+
   scale_y_continuous(expand = c(0,0),
@@ -500,9 +502,11 @@ p_count<-ggplot(status_data, aes(Taxon, project_count, fill = status))+
   theme(strip.background = element_blank(),
         text = element_text(size = 12),
         axis.text.x = element_text(size = 10,angle = 45, hjust =1),
+        axis.title = element_text(size = 10),
+        axis.title.y = element_text(margin = margin(t = 0, r = 25, b = 0, l = 0)),
         panel.spacing = unit(2, "lines"))+
   labs(fill = "species status")+
-  xlab("")+
+  xlab("Focal taxa")+
   ylab("Number of unique community science projects")+
   scale_fill_manual(values = c("#4DBBD5FF", "#E64B35FF"))+
   scale_y_continuous(expand = c(0,0),
