@@ -19,6 +19,7 @@ load("data/data_clean_nov10.RData")
 #### figure 1 ####
 
 mypal2 = pal_npg("nrc", alpha = 1)(2)
+mypal3 <- c("#4DBBD5FF","#E64B35FF")
 
 notlisted <- data_clean1 %>%
   #filter(is.na(Sp_status))%>%
@@ -63,56 +64,59 @@ listed_by_taxa <- listed %>%
 
 listed_by_taxa$status <- rep("listed", length(listed_by_taxa$taxa_clean))
 
-fig2 <- rbind(not_listed_by_taxa,listed_by_taxa)
-fig2$status <- factor(fig2$status, levels= c("not listed","listed"))
-fig2a_data <- fig2 %>%
+fig1_data <- rbind(not_listed_by_taxa,listed_by_taxa)
+fig1_data$status <- factor(fig1_data$status, levels= c("not listed","listed"))
+figS1_data <- fig1_data %>%
   filter(variable == "n_articles") # this is supplemental
-fig2b_data <- fig2 %>%
-  filter(variable == "n_species") #this is figure 1
+figS1_data$taxa_clean[figS1_data$taxa_clean == "all"] <- "multi-taxa"
+fig1_data$status <- factor(fig1_data$status, levels= c("not listed","listed"))
+fig1m_data$taxa_clean%>%
+  filter(variable == "n_species",
+         taxa_clean != "all") #this is figure 1
 
 #n_articles
-fig2a <- ggplot(fig2a_data, aes(x=reorder(taxa_clean, - value), y = value, fill = status))+
+figS1 <- ggplot(figS1_data, aes(x=reorder(taxa_clean, - value), y = value, fill = status))+
   geom_bar(position="stack", stat="identity")+
-  theme_classic(base_size = 24, base_family = "serif")+
+  theme_classic(base_size = 28, base_family = "serif")+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
   labs(x="Taxon", y="Number of Articles")+
   #ggtitle("No. Articles")+
-  scale_fill_manual(limits = c("not listed","listed"), values=mypal2, name = "Status")
-fig2a
+  scale_fill_manual(limits = c("not listed","listed"), labels = c("not threatened","threatened"), values=mypal3, name = "Status")
+figS1
 
-png("figureS1.png", height = 10, width = 10, units="in", res = 300)
-fig2a
+png("figures/figureS1.png", height = 10, width = 10, units="in", res = 300)
+figS1
 dev.off()
 
 #n_species
-fig2b <- ggplot(fig2b_data, aes(x=reorder(taxa_clean, - value), y = value, fill = status))+
+fig1m <- ggplot(fig1m_data, aes(x=reorder(taxa_clean, - value), y = value, fill = status))+
   geom_bar(position="stack", stat="identity")+
-  theme_classic(base_size = 24, base_family = "serif")+
+  theme_classic(base_size = 28, base_family = "serif")+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, family="serif"))+
   labs(x="Taxon", y="Number of Species")+
   #ggtitle("No. species")+
-  scale_fill_manual(limits = c("not listed","listed"), values=mypal2, name = "Status")
-fig2b
+  scale_fill_manual(limits = c("not listed","listed"), labels = c("not threatened","threatened"), values=mypal3, name = "Status")
+fig1m
 
 #plot_list2 <- list(fig2a,fig2b)
 
 #figure2 <- ggarrange(plotlist = plot_list2,
- #                    common.legend = T,
- #                    ncol = 1,
- #                    nrow = 2,
- #                    #label.x = "Taxon",
- #                    #label.y = "Count",
- #                    legend = "right",
- #                    align = "hv")%>%
- # annotate_figure(figure, left = textGrob("Count", rot = 90, vjust = 1, gp = gpar(cex = 1.3)), bottom = textGrob("Taxon", gp = gpar(cex = 1.3)))
+#                    common.legend = T,
+#                    ncol = 1,
+#                    nrow = 2,
+#                    #label.x = "Taxon",
+#                    #label.y = "Count",
+#                    legend = "right",
+#                    align = "hv")%>%
+# annotate_figure(figure, left = textGrob("Count", rot = 90, vjust = 1, gp = gpar(cex = 1.3)), bottom = textGrob("Taxon", gp = gpar(cex = 1.3)))
 
 #png("fig2.png", height = 11.5, width = 10, units="in", res = 300)
 #figure2
 #dev.off()
 
 #figure 1 now, and only using 1b
-png("figure1.png", height = 10, width = 10, units="in", res = 300)
-fig2b
+png("figures/figure1.png", height = 10, width = 10, units="in", res = 300)
+fig1m
 dev.off()
 
 
