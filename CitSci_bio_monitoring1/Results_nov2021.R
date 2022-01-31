@@ -328,7 +328,7 @@ p <- sankeyNetwork(Links = links1, Nodes = nodes,
 p
 
 
-# Box figures
+####  Box figures #### 
 # updated: December 10th, 2021
 
 
@@ -451,13 +451,13 @@ ggsave(filename = "figures/Box_regression.png",
 # format data long version for Denmark and SA 
 # identify species of conservation concern.
 status_data<-filter(data, (Country == "Denmark")|(Country == "South Africa")) %>%
-  mutate(status = ifelse(is.na(Sp_status), "not reported", "of conservation concern")) %>% 
+  mutate(status = ifelse(is.na(Sp_status), "non-threatened", "threatened")) %>% 
   group_by(Country, Taxon, status) %>%
   summarize(article_count = n_distinct(Article),
             project_count = n_distinct(citsci_proj_ID)) 
 
 
-order_status<-c("of conservation concern", "not reported")
+order_status<-c("threatened", "non-threatened")
 
 
 # new facet label names for Countries
@@ -484,7 +484,7 @@ a_count<-ggplot(status_data, aes(Taxon, article_count, fill = status))+
   labs(fill = "species status")+
   xlab("")+
   ylab("Number of articles reviewed")+
-  scale_fill_manual(values = c("4DBBD5FF","red"))+
+  scale_fill_manual(values = c("#4DBBD5FF", "#E64B35FF"))+
   scale_y_continuous(expand = c(0,0),
                      limits = c(0,15))+
   facet_grid(.~Country,
@@ -500,7 +500,7 @@ p_count<-ggplot(status_data, aes(Taxon, project_count, fill = status))+
   labs(fill = "species status")+
   xlab("")+
   ylab("Number of unique community science projects")+
-  scale_fill_manual(values = c("4DBBD5FF","red"))+
+  scale_fill_manual(values = c("#4DBBD5FF", "#E64B35FF"))+
   scale_y_continuous(expand = c(0,0),
                      limits = c(0,5))+
   facet_grid(.~Country,
@@ -509,7 +509,8 @@ ggarrange(a_count, p_count, ncol = 1, nrow = 2,
           common.legend = TRUE, legend="right")
 
 ggsave(filename = "figures/Box_bars.png",
-       width =5, height = 6) 
+       width =5, height = 6,
+       dpi=300) 
 
 
 
