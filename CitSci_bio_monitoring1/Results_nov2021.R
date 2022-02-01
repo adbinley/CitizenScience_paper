@@ -187,6 +187,69 @@ dev.off()
 figure2 <- ggplot()
 
 
+#### Figure 2 alternative ####
+
+by_country_jv<-by_country
+by_country_jv$taxa_clean[by_country_jv$taxa_clean == "all"] <- "multi-taxa"
+
+
+rankings<-by_country_jv %>%
+  group_by(Country) %>% 
+  summarise(n_articles = sum(n_articles))
+
+
+fig2dat<-merge(x=by_country_jv, y=rankings, by="Country", all.x = TRUE) %>% 
+  mutate(total_country_articles = n_articles.y,
+         n_articles = n_articles.x)
+
+
+
+
+
+#inspired by mattherman.info/blog/fix-facet-width/
+
+figure2_alt<-fig2dat %>% 
+  mutate(
+    Continent = factor(Continent, levels = c("North America", "Europe", "Australia", 
+                                             "Africa", "South America", "Asia"))#,
+    # Country = fct_reorder(Country, n_articles, .desc='FALSE')
+    
+  ) %>% 
+  
+  
+  ggplot(aes(x=reorder(Country, total_country_articles), y = n_articles, fill = taxa_clean))+
+  geom_col(width =0.75)+
+  scale_fill_d3()+
+  scale_y_continuous(expand = c(0, 0.1))+
+  coord_flip()+
+  facet_grid(rows = vars(Continent),
+             scales = "free_y",
+             switch = "y",
+             space = "free_y")+
+  labs(y = "Number of articles reviewed")+
+  theme_minimal(base_family = "serif")+
+  theme(
+    plot.margin = margin (0.5, 0.5, 0.5, 0.5, unit = "cm"),
+    strip.text.y.left = element_text(angle = 0, face = "bold"),
+    strip.placement = "outside",
+    axis.title.x = element_text(margin = margin(t = 0.5, b=0.5, unit ="cm")),
+    axis.title.y = element_blank(),
+    axis.text = element_text(size =10),
+    legend.position = "right",
+    panel.grid = element_blank(),
+    axis.line.x = element_line()
+    
+  )
+
+figure2_alt
+
+png("figures/figure2_alt.png", height = 12, width = 8, units="in", res = 300)
+figure2_alt
+dev.off()
+
+
+
+
 #### Figure S2 ####
 load("data/mod_data.RData")
 
