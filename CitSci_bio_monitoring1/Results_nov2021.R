@@ -188,17 +188,40 @@ figure2 <- ggplot()
 
 
 #### Figure S2 ####
+load("data/mod_data.RData")
+
+GDP_per_cap <- read.csv("data/GDP_UN_data.csv")
+GDP_per_cap <- GDP_per_cap %>%
+  select("Country", "gdp")
+GDP <- GDP_per_cap 
+GDP$Country <- tolower(GDP$Country)
+
+articles_per_country <- data_clean1 %>%
+  group_by(Country) %>%
+  dplyr::summarise(n_studies = n_distinct(Article)) %>%
+  filter(Country != "puerto rico")
+
+articles_per_country$n_studies[15] <- 6 #chinas numbers plus taiwans - 3+3
+
+mod_data <- merge(articles_per_country, GDP, by = "Country", all.y = TRUE)
+mod_data[is.na(mod_data)] <- 0
+
 figS2 <- ggplot(mod_data, aes(log(gdp), (n_studies))) +
   geom_point()+
   geom_smooth(method = "lm")+
   # geom_text(aes(label=Country))+
   labs(y="No. Articles",
        x="log-GDP per capita")+
-  theme_classic(base_size = 24)+
+  theme_classic(base_size = 24)
 
 png("figureS2.png",height = 10, width = 10, units="in", res = 300)
 figS2
 dev.off()
+
+m1 <- lm(n_studies~log(gdp), data = mod_data)
+summary(m1)
+par(mfrow = c(2, 2))
+plot(m1)
 
 
 #### Figure 3 ####
