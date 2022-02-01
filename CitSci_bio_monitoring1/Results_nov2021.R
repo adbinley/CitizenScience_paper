@@ -12,7 +12,7 @@ library(scales)
 library(extrafont)
 
 
-theme_set(theme_classic(base_size = 10, base_family = "serif"))
+theme_set(theme_classic(base_size = 20, base_family = "serif"))
 
 load("data/data_clean_nov10.RData")
 
@@ -151,7 +151,7 @@ for(a in 1:length(u_continents)){
     ggplot(aes(fill = taxa_clean, x=reorder(Country, n_articles), y=n_articles, by = Country))+
     #scale_fill_npg()+
     ggtitle(cont)+
-    scale_fill_manual(limits = c("all","bird","invertebrate","mammal","plant","amphibian","reptile","fungi"), values=mypal, name = "Taxon", element_text(size = 16, family = "serif"))  + #
+    scale_fill_manual(limits = c("multi-taxa","bird","invertebrate","mammal","plant","amphibian","reptile","fungi"), values=mypal, name = "Taxon", element_text(size = 16, family = "serif"))  + #
     geom_bar(position="stack", stat="identity") +
      theme_classic(base_family = "serif")+
     ylim(0,90)+
@@ -171,14 +171,20 @@ figure <- ggarrange(plotlist = plot_list,
                     common.legend = T,
                     ncol = 2,
                     nrow = 3,
-                    label.x = "Country",
-                    label.y = "Number of Articles",
-                    legend = "bottom",
-                    align = "hv")#%>%
+                    labels=NULL,
+                    #label.x = "Country",
+                    #label.y = "Number of Articles",
+                    legend = "top",
+                    align = "hv")%>%
+  annotate_figure(figure, 
+                  left = text_grob("Country", rot = 90, family="serif",vjust = 1),  
+                  bottom = text_grob("Number of Articles", family="serif"))
 
-png("figure2.png", height = 12, width = 8, units="in", res = 300)
+png("figures/figure2.png", height = 12, width = 8, units="in", res = 300)
 figure
 dev.off()
+
+figure2 <- ggplot()
 
 
 #### Figure S2 ####
@@ -195,7 +201,7 @@ figS2
 dev.off()
 
 
-#### Figure 4 ####
+#### Figure 3 ####
 
 library(networkD3)
 library(tidyverse)
@@ -253,7 +259,7 @@ p <- sankeyNetwork(Links = links1, Nodes = nodes,
                    Source = "IDsource", Target = "IDtarget",
                    Value = "value", 
                    NodeID = "name", 
-                   fontSize = 16,
+                   fontSize = 22,
                    colourScale = JS(ColourScale),
                    NodeGroup = "group",
                    sinksRight=FALSE)
@@ -280,7 +286,7 @@ q <- onRender(
 )
 
 #doesnt work 
-png("figure3.png", height = 8, width = 11.5, units="in", res = 300)
+png("figures/figure3.png", height = 8, width = 11.5, units="in", res = 300)
 onRender(
   p,
   '
@@ -300,7 +306,7 @@ library(webshot)
 webshot::install_phantomjs()
 
 saveWidget(q, "temp.html")
-webshot("temp.html", "sankey_widget.png")
+webshot("temp.html", "figures/figure3.png")
 
 
 
@@ -331,6 +337,14 @@ p <- sankeyNetwork(Links = links1, Nodes = nodes,
                    sinksRight=FALSE)
 p
 
+#note that some articles examine multiple threats - does not add up to 334
+n_distinct(data_clean1[which(data_clean1$threat1 == "habitat loss"), "Article"])
+n_distinct(data_clean1[which(data_clean1$threat1 == "climate change"), "Article" ])
+n_distinct(data_clean1[which(data_clean1$threat1 == "no threat"), "Article" ])
+n_distinct(data_clean1[which(data_clean1$threat1 == "invasives"), "Article" ])
+n_distinct(data_clean1[which(data_clean1$threat1 == "infectious diseases"), "Article" ])
+n_distinct(data_clean1[which(data_clean1$threat1 == "biocontaminants"), "Article" ])
+n_distinct(data_clean1[which(data_clean1$threat1 == "harvesting" ), "Article" ])
 
 ####  Box figures #### 
 # updated: January 31 2022
