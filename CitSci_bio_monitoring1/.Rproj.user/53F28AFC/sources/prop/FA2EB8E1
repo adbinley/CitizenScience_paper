@@ -1,6 +1,7 @@
-{
-    "cursorPosition": "269,0",
-    "scrollLine": "244",
+{ box_regression-resolution-to-300-dpi
+    "cursorPosition": "552,0",
+    "scrollLine": "526",
+
     "Source": "Source",
     "docOutlineVisible": "1",
     "disableDependencyDiscovery": "1"

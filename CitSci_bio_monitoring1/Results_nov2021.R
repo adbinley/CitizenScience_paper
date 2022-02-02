@@ -565,7 +565,8 @@ regression
 
 
 ggsave(filename = "figures/Box_regression.png",
-       width =5, height = 6) 
+       width =5, height = 6,
+       dpi=300) 
 
 
 
