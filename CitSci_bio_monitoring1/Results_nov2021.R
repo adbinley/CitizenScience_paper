@@ -189,6 +189,22 @@ figure2 <- ggplot()
 
 #### Figure 2 alternative ####
 
+
+
+by_country <- data_clean1 %>%
+  group_by(Continent, Country, taxa_clean) %>%
+  summarise(n_articles = length(unique(Article)),
+            n_species = length(unique(species_level))) %>%
+  filter(Continent != "Antarctica" &
+           Continent != "NA")
+
+by_country$n_species <- as.numeric(by_country$n_species)
+by_country %>%
+  mutate(n_species = fct_reorder(Country, n_articles, .fun='length'))
+
+by_country$Country <- by_country$Country %>%
+  str_to_title()
+
 by_country_jv<-by_country
 by_country_jv$taxa_clean[by_country_jv$taxa_clean == "all"] <- "multi-taxa"
 
@@ -211,9 +227,10 @@ fig2dat<-merge(x=by_country_jv, y=rankings, by="Country", all.x = TRUE) %>%
 figure2_alt<-fig2dat %>% 
   mutate(
     Continent = factor(Continent, levels = c("North America", "Europe", "Australia", 
-                                             "Africa", "South America", "Asia"))#,
-    # Country = fct_reorder(Country, n_articles, .desc='FALSE')
-    
+                                             "Africa", "South America", "Asia")),
+    taxa_clean = factor(taxa_clean, levels = c("bird", "invertebrate", "mammal",
+                                               "plant", "amphibian", "reptile", "fungi", 
+                                               "multi-taxa"))
   ) %>% 
   
   
@@ -226,7 +243,8 @@ figure2_alt<-fig2dat %>%
              scales = "free_y",
              switch = "y",
              space = "free_y")+
-  labs(y = "Number of articles reviewed")+
+  labs(y = "Number of articles reviewed",
+       fill = "Focal taxa")+
   theme_minimal(base_family = "serif")+
   theme(
     plot.margin = margin (0.5, 0.5, 0.5, 0.5, unit = "cm"),
