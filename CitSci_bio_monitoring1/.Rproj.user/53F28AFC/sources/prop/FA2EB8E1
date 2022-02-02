@@ -1,6 +1,7 @@
 {
-    "cursorPosition": "245,0",
-    "scrollLine": "220",
+    "cursorPosition": "269,0",
+    "scrollLine": "244",
     "Source": "Source",
-    "docOutlineVisible": "1"
+    "docOutlineVisible": "1",
+    "disableDependencyDiscovery": "1"
 }
