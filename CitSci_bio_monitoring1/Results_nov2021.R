@@ -269,7 +269,7 @@ dev.off()
 
 
 #### Figure S2 ####
-load("data/mod_data.RData")
+#load("data/mod_data.RData")
 
 GDP_per_cap <- read.csv("data/GDP_UN_data.csv")
 GDP_per_cap <- GDP_per_cap %>%
@@ -295,7 +295,7 @@ figS2 <- ggplot(mod_data, aes(log(gdp), (n_studies))) +
        x="log-GDP per capita")+
   theme_classic(base_size = 24)
 
-png("figureS2.png",height = 10, width = 10, units="in", res = 300)
+png("figures/figureS2.png",height = 10, width = 10, units="in", res = 300)
 figS2
 dev.off()
 
