@@ -351,6 +351,7 @@ nodes$group <- gsub(" ", "-", nodes$name)
 
 nodes$name <- gsub("Abundance And Trends", "Abundance and Trends", nodes$name)
 nodes$name <- gsub("Distribution And Range Shifts", "Distribution and Range Shifts", nodes$name)
+nodes$name <- gsub("Life-History Evolution", "Life History and Evolution", nodes$name)
 
 
 #https://stackoverflow.com/questions/48459033/sankey-network-manual-colour-change
@@ -409,7 +410,7 @@ library(webshot)
 
 webshot::install_phantomjs()
 
-saveWidget(q, "temp.html")
+saveWidget(q, "temp1.html")
 webshot("temp.html", "figures/figure3.png")
 
 
