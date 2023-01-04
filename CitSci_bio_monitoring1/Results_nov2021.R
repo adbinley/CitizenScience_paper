@@ -299,10 +299,14 @@ png("figures/figureS2.png",height = 10, width = 10, units="in", res = 300)
 figS2
 dev.off()
 
-m1 <- lm(n_studies~log(gdp), data = mod_data)
-summary(m1)
-par(mfrow = c(2, 2))
-plot(m1)
+
+# m1 <- lm(n_studies~log(gdp), data = mod_data)
+# summary(m1)
+# par(mfrow = c(2, 2))
+# plot(m1)
+
+# model poisson regression
+poisson.model <- glm(n_studies ~ gdp, mod_data, family = quasipoisson(link="log"))
 
 
 #### Figure 3 ####
