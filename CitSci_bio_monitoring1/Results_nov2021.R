@@ -70,7 +70,7 @@ figS1_data <- fig1_data %>%
   filter(variable == "n_articles") # this is supplemental
 figS1_data$taxa_clean[figS1_data$taxa_clean == "all"] <- "multi-taxa"
 fig1_data$status <- factor(fig1_data$status, levels= c("not listed","listed"))
-fig1m_data$taxa_clean%>%
+fig1m_data <- fig1_data %>%
   filter(variable == "n_species",
          taxa_clean != "all") #this is figure 1
 
