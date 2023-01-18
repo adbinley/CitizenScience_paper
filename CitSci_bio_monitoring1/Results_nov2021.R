@@ -311,6 +311,12 @@ poisson.model <- glm(n_studies ~ gdp, mod_data, family = quasipoisson(link="log"
 
 #### Figure 3 ####
 
+
+#### Figure 4 ####
+
+
+#### Figure 5 ####
+
 library(networkD3)
 library(tidyverse)
 load("data/data_clean_nov10.RData")
