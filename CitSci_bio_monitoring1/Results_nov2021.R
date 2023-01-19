@@ -310,157 +310,76 @@ poisson.model <- glm(n_studies ~ gdp, mod_data, family = quasipoisson(link="log"
 
 
 #### Figure 3 ####
+# created by: Jaimie Vincent
+# contact info: jaimie.vicent@carleton.ca
+# project: citizen science leveraging in biodiversity conservation literature
+# updated: April 6, 2021
+
+# input data file: "data_clean_April5" from adbinley's GitHub repo (downloaded March 22, 2021)
+
+# purpose: correlation plot between the number of citizen science projects (per country)
+# and the number of studies (i.e., sp/time/location combo) from the included articles
+
+
+
+library(tidyverse)
+library(ggrepel)
+
+data<-read.csv("~/GitHub/CitSci_bio_monitoring/data/data_clean_Apr5")
+
+# group data by country
+by_country<-data %>%
+  group_by(Country) %>% 
+  summarise(n_proj = n_distinct(citsci_proj_ID),
+            n_studies = n_distinct(row_ID),
+            n_Articles = n_distinct(Article))
+
+
+
+#data without UK or US
+without_UKUS<-by_country %>% 
+  filter(Country != c('united states')) %>% 
+  filter(Country != c('united kingdom'))
+
+
+# plot function (https://sejohnston.com/2012/08/09/a-quick-and-easy-function-to-plot-lm-results-in-r/)
+# visualize residuals (https://drsimonj.svbtle.com/visualising-residuals)
+
+
+
+plot_reg_res_nproj<-function (fit, plot_data) {
+  
+  require(ggplot2)
+  
+  plot_data$predicted<-predict(fit)
+  plot_data$residuals<-residuals(fit)
+  
+  ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit$model)[1])) + 
+    geom_smooth(method = "lm", se = TRUE, color = "black") + #model line with grey se
+    geom_segment(aes(xend = n_proj, yend = plot_data$predicted),
+                 alpha = .3) + #lines between predicted values and actual
+    
+    #colour adjustments
+    geom_point(aes(color = plot_data$residuals), size = 5) + # Color and size mapped here. Size can be changed to: abs(plot_data$residuals))
+    scale_color_gradient2(low = "#fd0032", mid = "#abdf0f", high = "#00f2ce",
+                          guide = "colourbar") +  # Colors to use here
+    #guides(color = FALSE) +
+    
+    theme_bw() + # Add theme for cleaner look
+    geom_text(label = plot_data$Country, check_overlap = TRUE) +
+    
+    labs(title = paste("Adj R2 = ",signif(summary(fit)$adj.r.squared, 5),
+                       "Intercept =",signif(fit$coef[[1]],5 ),
+                       " Slope =",signif(fit$coef[[2]], 5),
+                       " P =",signif(summary(fit)$coef[2,4], 5),
+                       "\nCall = ", fit$call, "(", names(fit$model)[1],"~", names(fit$model)[2], ")"))
+  
+}
+
+
 
 
 #### Figure 4 ####
-
-
-#### Figure 5 ####
-
-library(networkD3)
-library(tidyverse)
-load("data/data_clean_nov10.RData")
-
-#mypal3 = pal_npg("nrc", alpha = 1)(13)
-#https://www.r-graph-gallery.com/322-custom-colours-in-sankey-diagram.html
-
-#links <- data.frame(goals_threats_metrics$Article, goals_threats_metrics$threat, goals_threats_metrics$response)
-links <- data.frame(data_clean1$Article, data_clean1$threat1, data_clean1$response1)
-colnames(links) <- c("article", "predictor", "response")
-
-links$predictor <- links$predictor %>%
-  str_to_title()
-links$response <- links$response %>%
-  str_to_title()
-
-links1 <- unique(links)
-
-nodes <- data.frame(
-  name=c(as.character(links1$predictor), 
-         as.character(links1$response)) %>% unique()
-)
-
-links1$IDsource <- match(links1$predictor, nodes$name)-1 
-links1$IDtarget <- match(links1$response, nodes$name)-1
-links1$value <- rep(1, length(links1$article))
-
-#save(links1, file="data/outputs/sankey_data.RData")
-
-
-library("RColorBrewer")
-threat_col <- brewer.pal(n = 7, name = "YlOrRd")
-resp_col <- brewer.pal(n = 7, name = "GnBu")
-#YlOrRd
-#GnBu
-
-#nb.cols <- 14
-#mycolors <- colorRampPalette(brewer.pal(8, "RdBu"))(nb.cols)
-#display.brewer.pal(threat_col)
-
-nodes$group <- gsub(" ", "-", nodes$name)
-
-nodes$name <- gsub("Abundance And Trends", "Abundance and Trends", nodes$name)
-nodes$name <- gsub("Distribution And Range Shifts", "Distribution and Range Shifts", nodes$name)
-nodes$name <- gsub("Life-History Evolution", "Life History and Evolution", nodes$name)
-
-
-#https://stackoverflow.com/questions/48459033/sankey-network-manual-colour-change
-
-ColourScale <- 'd3.scaleOrdinal()
-            .domain(["Habitat-Loss","Climate-Change","No-Threat","Invasives","Infectious-Diseases","Biocontaminants","Harvesting","Abundance-And-Trends","Distribution-And-Range-Shifts","No-Response","Phenology","Life-History-Evolution","Richness,-Diversity,-Community-Composition","Genetics"])
-           .range(["#800026","#fc4e2a","#bd0026","#feb24c","#fed976","#ffffcc","#ffffcc","#293e47", "#1b292f","#87ceeb","#5f90a5","#517c8d","#36525E","#6ca5bc"]);'
-
-p <- sankeyNetwork(Links = links1, Nodes = nodes,
-                   Source = "IDsource", Target = "IDtarget",
-                   Value = "value", 
-                   NodeID = "name", 
-                   fontSize = 22,
-                   colourScale = JS(ColourScale),
-                   NodeGroup = "group",
-                   sinksRight=FALSE)
-p
-
-library(htmlwidgets)
-
-#https://stackoverflow.com/questions/61172342/pushing-left-labels-to-the-left-of-the-nodes-in-sankey-diagram
-
-nodes$target <- c(rep(TRUE,7),rep(FALSE,7))
-
-p$x$nodes$target <- nodes$target
-
-q <- onRender(
-  p,
-  '
-  function(el, x) {
-    d3.selectAll(".node text")
-    .filter(d => d.target)
-    .attr("text-anchor", "end")
-    .attr("x", -6);
-  }
-  '
-)
-
-#doesnt work 
-png("figures/figure3.png", height = 8, width = 11.5, units="in", res = 300)
-onRender(
-  p,
-  '
-  function(el, x) {
-    d3.selectAll(".node text")
-    .filter(d => d.target)
-    .attr("text-anchor", "end")
-    .attr("x", -6);
-  }
-  '
-)
-dev.off()
-
-#also not working
-library(webshot)
-
-webshot::install_phantomjs()
-
-saveWidget(q, "temp1.html")
-webshot("temp.html", "figures/figure3.png")
-
-
-
-library(networkD3)
-
-load("data/outputs/sankey_data.RData")
-
-nodes <- data.frame(
-  name=c(as.character(links1$predictor), 
-         as.character(links1$response)) %>% unique()
-)
-
-#nodes$id <- 0:(nrow(nodes) - 1)
-
-nodes$group <- gsub(" ", "-", nodes$name)
-
-ColourScale <- 'd3.scaleOrdinal()
-            .domain(["Habitat-Loss","Climate-Change","No-Threat","Invasives","Infectious-Diseases","Biocontaminants","Harvesting","Abundance-And-Trends","Distribution-And-Range-Shifts","No-Response","Phenology","Life-History-Evolution","Richness,-Diversity,-Community-Composition","Genetics"])
-           .range(["#800026","#fc4e2a","#bd0026","#feb24c","#fed976","#ffffcc","#ffffcc","#293e47", "#1b292f","#87ceeb","#5f90a5","#517c8d","#36525E","#6ca5bc"]);'
-
-p <- sankeyNetwork(Links = links1, Nodes = nodes,
-                   Source = "IDsource", Target = "IDtarget",
-                   Value = "value", 
-                   NodeID = "name", 
-                   fontSize = 16,
-                   colourScale = JS(ColourScale),
-                   NodeGroup = "group",
-                   sinksRight=FALSE)
-p
-
-#note that some articles examine multiple threats - does not add up to 334
-n_distinct(data_clean1[which(data_clean1$threat1 == "habitat loss"), "Article"])
-n_distinct(data_clean1[which(data_clean1$threat1 == "climate change"), "Article" ])
-n_distinct(data_clean1[which(data_clean1$threat1 == "no threat"), "Article" ])
-n_distinct(data_clean1[which(data_clean1$threat1 == "invasives"), "Article" ])
-n_distinct(data_clean1[which(data_clean1$threat1 == "infectious diseases"), "Article" ])
-n_distinct(data_clean1[which(data_clean1$threat1 == "biocontaminants"), "Article" ])
-n_distinct(data_clean1[which(data_clean1$threat1 == "harvesting" ), "Article" ])
-
 ####  Box figures #### 
 # updated: January 31 2022
 
@@ -649,6 +568,154 @@ ggarrange(a_count, p_count, ncol = 1, nrow = 2,
 ggsave(filename = "figures/Box_bars.png",
        width =5, height = 6,
        dpi=300) 
+
+
+#### Figure 5 ####
+
+library(networkD3)
+library(tidyverse)
+load("data/data_clean_nov10.RData")
+
+#mypal3 = pal_npg("nrc", alpha = 1)(13)
+#https://www.r-graph-gallery.com/322-custom-colours-in-sankey-diagram.html
+
+#links <- data.frame(goals_threats_metrics$Article, goals_threats_metrics$threat, goals_threats_metrics$response)
+links <- data.frame(data_clean1$Article, data_clean1$threat1, data_clean1$response1)
+colnames(links) <- c("article", "predictor", "response")
+
+links$predictor <- links$predictor %>%
+  str_to_title()
+links$response <- links$response %>%
+  str_to_title()
+
+links1 <- unique(links)
+
+nodes <- data.frame(
+  name=c(as.character(links1$predictor), 
+         as.character(links1$response)) %>% unique()
+)
+
+links1$IDsource <- match(links1$predictor, nodes$name)-1 
+links1$IDtarget <- match(links1$response, nodes$name)-1
+links1$value <- rep(1, length(links1$article))
+
+#save(links1, file="data/outputs/sankey_data.RData")
+
+
+library("RColorBrewer")
+threat_col <- brewer.pal(n = 7, name = "YlOrRd")
+resp_col <- brewer.pal(n = 7, name = "GnBu")
+#YlOrRd
+#GnBu
+
+#nb.cols <- 14
+#mycolors <- colorRampPalette(brewer.pal(8, "RdBu"))(nb.cols)
+#display.brewer.pal(threat_col)
+
+nodes$group <- gsub(" ", "-", nodes$name)
+
+nodes$name <- gsub("Abundance And Trends", "Abundance and Trends", nodes$name)
+nodes$name <- gsub("Distribution And Range Shifts", "Distribution and Range Shifts", nodes$name)
+nodes$name <- gsub("Life-History Evolution", "Life History and Evolution", nodes$name)
+
+
+#https://stackoverflow.com/questions/48459033/sankey-network-manual-colour-change
+
+ColourScale <- 'd3.scaleOrdinal()
+            .domain(["Habitat-Loss","Climate-Change","No-Threat","Invasives","Infectious-Diseases","Biocontaminants","Harvesting","Abundance-And-Trends","Distribution-And-Range-Shifts","No-Response","Phenology","Life-History-Evolution","Richness,-Diversity,-Community-Composition","Genetics"])
+           .range(["#800026","#fc4e2a","#bd0026","#feb24c","#fed976","#ffffcc","#ffffcc","#293e47", "#1b292f","#87ceeb","#5f90a5","#517c8d","#36525E","#6ca5bc"]);'
+
+p <- sankeyNetwork(Links = links1, Nodes = nodes,
+                   Source = "IDsource", Target = "IDtarget",
+                   Value = "value", 
+                   NodeID = "name", 
+                   fontSize = 22,
+                   colourScale = JS(ColourScale),
+                   NodeGroup = "group",
+                   sinksRight=FALSE)
+p
+
+library(htmlwidgets)
+
+#https://stackoverflow.com/questions/61172342/pushing-left-labels-to-the-left-of-the-nodes-in-sankey-diagram
+
+nodes$target <- c(rep(TRUE,7),rep(FALSE,7))
+
+p$x$nodes$target <- nodes$target
+
+q <- onRender(
+  p,
+  '
+  function(el, x) {
+    d3.selectAll(".node text")
+    .filter(d => d.target)
+    .attr("text-anchor", "end")
+    .attr("x", -6);
+  }
+  '
+)
+
+#doesnt work 
+png("figures/figure3.png", height = 8, width = 11.5, units="in", res = 300)
+onRender(
+  p,
+  '
+  function(el, x) {
+    d3.selectAll(".node text")
+    .filter(d => d.target)
+    .attr("text-anchor", "end")
+    .attr("x", -6);
+  }
+  '
+)
+dev.off()
+
+#also not working
+library(webshot)
+
+webshot::install_phantomjs()
+
+saveWidget(q, "temp1.html")
+webshot("temp.html", "figures/figure3.png")
+
+
+
+library(networkD3)
+
+load("data/outputs/sankey_data.RData")
+
+nodes <- data.frame(
+  name=c(as.character(links1$predictor), 
+         as.character(links1$response)) %>% unique()
+)
+
+#nodes$id <- 0:(nrow(nodes) - 1)
+
+nodes$group <- gsub(" ", "-", nodes$name)
+
+ColourScale <- 'd3.scaleOrdinal()
+            .domain(["Habitat-Loss","Climate-Change","No-Threat","Invasives","Infectious-Diseases","Biocontaminants","Harvesting","Abundance-And-Trends","Distribution-And-Range-Shifts","No-Response","Phenology","Life-History-Evolution","Richness,-Diversity,-Community-Composition","Genetics"])
+           .range(["#800026","#fc4e2a","#bd0026","#feb24c","#fed976","#ffffcc","#ffffcc","#293e47", "#1b292f","#87ceeb","#5f90a5","#517c8d","#36525E","#6ca5bc"]);'
+
+p <- sankeyNetwork(Links = links1, Nodes = nodes,
+                   Source = "IDsource", Target = "IDtarget",
+                   Value = "value", 
+                   NodeID = "name", 
+                   fontSize = 16,
+                   colourScale = JS(ColourScale),
+                   NodeGroup = "group",
+                   sinksRight=FALSE)
+p
+
+#note that some articles examine multiple threats - does not add up to 334
+n_distinct(data_clean1[which(data_clean1$threat1 == "habitat loss"), "Article"])
+n_distinct(data_clean1[which(data_clean1$threat1 == "climate change"), "Article" ])
+n_distinct(data_clean1[which(data_clean1$threat1 == "no threat"), "Article" ])
+n_distinct(data_clean1[which(data_clean1$threat1 == "invasives"), "Article" ])
+n_distinct(data_clean1[which(data_clean1$threat1 == "infectious diseases"), "Article" ])
+n_distinct(data_clean1[which(data_clean1$threat1 == "biocontaminants"), "Article" ])
+n_distinct(data_clean1[which(data_clean1$threat1 == "harvesting" ), "Article" ])
+
 
 
 
