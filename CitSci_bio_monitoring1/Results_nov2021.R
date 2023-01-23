@@ -12,7 +12,7 @@ library(scales)
 library(extrafont)
 
 
-theme_set(theme_classic(base_size = 20, base_family = "serif"))
+theme_set(theme_classic(base_size = 24, base_family = "sans"))
 
 load("data/data_clean_nov10.RData")
 
@@ -77,7 +77,7 @@ fig1m_data <- fig1_data %>%
 #n_articles
 figS1 <- ggplot(figS1_data, aes(x=reorder(taxa_clean, - value), y = value, fill = status))+
   geom_bar(position="stack", stat="identity")+
-  theme_classic(base_size = 28, base_family = "serif")+
+  theme_classic(base_size = 24, base_family = "sans")+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
   labs(x="Taxon", y="Number of Articles")+
   #ggtitle("No. Articles")+
@@ -91,8 +91,8 @@ dev.off()
 #n_species
 fig1m <- ggplot(fig1m_data, aes(x=reorder(taxa_clean, - value), y = value, fill = status))+
   geom_bar(position="stack", stat="identity")+
-  theme_classic(base_size = 28, base_family = "serif")+
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, family="serif"))+
+  theme_classic(base_size = 24, base_family = "sans")+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, family="sans"))+
   labs(x="Taxon", y="Number of Species")+
   #ggtitle("No. species")+
   scale_fill_manual(limits = c("not listed","listed"), labels = c("not threatened","threatened"), values=mypal3, name = "Status")
@@ -151,14 +151,14 @@ for(a in 1:length(u_continents)){
     ggplot(aes(fill = taxa_clean, x=reorder(Country, n_articles), y=n_articles, by = Country))+
     #scale_fill_npg()+
     ggtitle(cont)+
-    scale_fill_manual(limits = c("multi-taxa","bird","invertebrate","mammal","plant","amphibian","reptile","fungi"), values=mypal, name = "Taxon", element_text(size = 16, family = "serif"))  + #
+    scale_fill_manual(limits = c("multi-taxa","bird","invertebrate","mammal","plant","amphibian","reptile","fungi"), values=mypal, name = "Taxon", element_text(size = 16, family = "sans"))  + #
     geom_bar(position="stack", stat="identity") +
-     theme_classic(base_family = "serif")+
+     theme_classic(base_family = "sans")+
     ylim(0,90)+
-    theme(axis.text.x = element_text(vjust = 0.5, hjust=1, family = "serif"),
+    theme(axis.text.x = element_text(vjust = 0.5, hjust=1, family = "sans"),
           # legend.position = "none"
-          legend.title=element_text(size=14, family = "serif"),#)+
-          legend.text=element_text(size=14, family = "serif"))+
+          legend.title=element_text(size=14, family = "sans"),#)+
+          legend.text=element_text(size=14, family = "sans"))+
     labs(x="", y="")+
     coord_flip()
   
@@ -175,13 +175,13 @@ figure <- ggarrange(plotlist = plot_list,
                     #label.x = "Country",
                     #label.y = "Number of Articles",
                     legend = "top",
-                    align = "hv")%>%
-  annotate_figure(figure, 
-                  left = text_grob("Country", rot = 90, family="serif",vjust = 1),  
-                  bottom = text_grob("Number of Articles", family="serif"))
+                    align = "hv")#%>%
+  figure2 <- annotate_figure(figure, 
+                  left = text_grob("Country", rot = 90, family="sans",vjust = 1),  
+                  bottom = text_grob("Number of Articles", family="sans"))
 
 png("figures/figure2.png", height = 12, width = 8, units="in", res = 300)
-figure
+figure2
 dev.off()
 
 figure2 <- ggplot()
@@ -234,9 +234,11 @@ figure2_alt<-fig2dat %>%
   ) %>% 
   
   
-  ggplot(aes(x=reorder(Country, total_country_articles), y = n_articles, fill = taxa_clean))+
+ggplot(aes(x=reorder(Country, total_country_articles), y = n_articles, fill = taxa_clean))+
+  theme_classic(base_size = 24, base_family = "sans")+
   geom_col(width =0.75)+
-  scale_fill_d3()+
+  # scale_fill_d3()+
+  scale_fill_manual(limits = c("multi-taxa","bird","invertebrate","mammal","plant","amphibian","reptile","fungi"), values=mypal, name = "Taxon", element_text(size = 24, family = "sans"))+
   scale_y_continuous(expand = c(0, 0.1))+
   coord_flip()+
   facet_grid(rows = vars(Continent),
@@ -245,7 +247,7 @@ figure2_alt<-fig2dat %>%
              space = "free_y")+
   labs(y = "Number of articles reviewed",
        fill = "Focal taxa")+
-  theme_minimal(base_family = "serif")+
+  theme_minimal(base_family = "sans")+
   theme(
     plot.margin = margin (0.5, 0.5, 0.5, 0.5, unit = "cm"),
     strip.text.y.left = element_text(angle = 0, face = "bold"),
@@ -325,7 +327,8 @@ poisson.model <- glm(n_studies ~ gdp, mod_data, family = quasipoisson(link="log"
 library(tidyverse)
 library(ggrepel)
 
-data<-read.csv("~/GitHub/CitSci_bio_monitoring/data/data_clean_Apr5")
+# data<-read.csv("~/GitHub/CitSci_bio_monitoring/data/data_clean_Apr5")
+data <- data_clean1
 
 # group data by country
 by_country<-data %>%
@@ -453,7 +456,7 @@ regression<- ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit
   
   xlim(c(-12,85))+
   
-  theme_classic(base_family = "serif") + # Add theme for cleaner look
+  theme_classic(base_family = "sans") + # Add theme for cleaner look
   theme(legend.position = "right",
         axis.title.x = element_text(size = 12),
         axis.title.y = element_text(size = 12),
@@ -462,22 +465,22 @@ regression<- ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit
   
   
   geom_text(data = USA_lab, aes(label = Country),
-            family = "serif",
+            family = "sans",
             size = 3.5,
             hjust =1.05)+
   
   geom_text(data = UK_lab, aes(label = Country),
-            family = "serif",
+            family = "sans",
             size = 3.5,
             hjust =1.1)+
   
   geom_text(data = SA_lab, aes(label = Country),
-            family = "serif",
+            family = "sans",
             size = 3.5,
             hjust =-.05)+
   
   geom_text(data = Den_lab, aes(label = Country),
-            family = "serif",
+            family = "sans",
             size = 3.5,
             vjust =-0.6,
             hjust = .9)+
@@ -529,11 +532,11 @@ bottom_labeller<-function(variable, value){
 
 a_count<-ggplot(status_data, aes(Taxon, article_count, fill = status))+
   geom_col(position = "stack")+
-  theme_classic(base_family = "serif")+
+  theme_classic(base_family = "sans")+
   theme(strip.background = element_blank(),
-        text = element_text(size = 12),
-        axis.text.x = element_text(size = 10,angle = 45, hjust =1),
-        axis.title = element_text(size = 10),
+        text = element_text(size = 24),
+        axis.text.x = element_text(size = 15,angle = 45, hjust =1),
+        axis.title = element_text(size = 20),
         axis.title.y = element_text(margin = margin(t = 0, r = 25, b = 0, l = 0)),
         panel.spacing = unit(2, "lines"))+
   labs(fill = "species status")+
@@ -547,11 +550,11 @@ a_count<-ggplot(status_data, aes(Taxon, article_count, fill = status))+
 
 p_count<-ggplot(status_data, aes(Taxon, project_count, fill = status))+
   geom_col(position = "stack")+
-  theme_classic(base_family = "serif")+
+  theme_classic(base_family = "sans")+
   theme(strip.background = element_blank(),
-        text = element_text(size = 12),
-        axis.text.x = element_text(size = 10,angle = 45, hjust =1),
-        axis.title = element_text(size = 10),
+        text = element_text(size = 24),
+        axis.text.x = element_text(size = 15,angle = 45, hjust =1),
+        axis.title = element_text(size = 20),
         axis.title.y = element_text(margin = margin(t = 0, r = 25, b = 0, l = 0)),
         panel.spacing = unit(2, "lines"))+
   labs(fill = "species status")+
@@ -566,7 +569,7 @@ ggarrange(a_count, p_count, ncol = 1, nrow = 2,
           common.legend = TRUE, legend="right")
 
 ggsave(filename = "figures/Box_bars.png",
-       width =5, height = 6,
+       width =10, height = 12,
        dpi=300) 
 
 
@@ -682,7 +685,7 @@ webshot("temp.html", "figures/figure3.png")
 
 library(networkD3)
 
-load("data/outputs/sankey_data.RData")
+load("data/sankey_data.RData")
 
 nodes <- data.frame(
   name=c(as.character(links1$predictor), 
@@ -702,6 +705,7 @@ p <- sankeyNetwork(Links = links1, Nodes = nodes,
                    Value = "value", 
                    NodeID = "name", 
                    fontSize = 16,
+                   fontFamily = "sans",
                    colourScale = JS(ColourScale),
                    NodeGroup = "group",
                    sinksRight=FALSE)

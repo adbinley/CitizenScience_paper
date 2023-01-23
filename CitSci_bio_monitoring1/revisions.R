@@ -15,8 +15,15 @@ load("data/data_clean_nov10.RData")
 #from Chapman et al 2009
 
 dspecies <- data.frame(taxa_clean = unique(data_clean1$taxa_clean),
-                       number_described = c(1359367,
-                       9990,5487,NA,6515,297857,8734,98998))
+                       number_described = c(
+                         1202119,#inverts
+                       9990,#birds
+                       5487, #mammals
+                       NA,#multi-taxa
+                       6515,#amphibian
+                       297857,#plants
+                       8734,#reptiles
+                       98998))#fungi
 
 # citsci_data1 <- citsci_data %>%
 #   drop_na(Taxa_clean)
@@ -64,14 +71,15 @@ comp_data$difference <- comp_data$proportion - comp_data$proportion_described
 comp_plot <- ggplot(res_1, aes(y=observed, x=expected, label = taxon))+
   geom_point()+
   #geom_text(hjust=0, vjust=-0.5)+
-  geom_label_repel(aes(label = taxon, size = NULL), nudge_y = 0.7)+
+  geom_label_repel(size = 7,aes(size = NULL), nudge_y = 0.7)+
   geom_abline(intercept = 0, slope = 1, linetype = "dashed")+
-  theme_classic(base_size = 28, base_family = "serif")+
+  theme_classic(base_size = 24, base_family = "sans")+
   labs(x="Expected Number of Articles", y="Observed Number of Articles")
 
-png("fig_xsq1.png", height = 9, width = 9, units="in", res = 300)
+png("figures/fig_xsq1.png", height = 10, width = 10, units="in", res = 300)
 comp_plot
 dev.off()
+
 
 
 #### data deficient species ####
