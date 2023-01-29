@@ -311,14 +311,11 @@ dev.off()
 poisson.model <- glm(n_studies ~ gdp, mod_data, family = quasipoisson(link="log"))
 
 
-#### Figure 3 ####
+#### Figure 3, basic regression plot function ####
 # created by: Jaimie Vincent
 # contact info: jaimie.vicent@carleton.ca
 # project: citizen science leveraging in biodiversity conservation literature
 # updated: April 6, 2021
-
-# input data file: "data_clean_April5" from adbinley's GitHub repo (downloaded March 22, 2021)
-
 # purpose: correlation plot between the number of citizen science projects (per country)
 # and the number of studies (i.e., sp/time/location combo) from the included articles
 
@@ -327,7 +324,6 @@ poisson.model <- glm(n_studies ~ gdp, mod_data, family = quasipoisson(link="log"
 library(tidyverse)
 library(ggrepel)
 
-# data<-read.csv("~/GitHub/CitSci_bio_monitoring/data/data_clean_Apr5")
 data <- data_clean1
 
 # group data by country
@@ -381,9 +377,7 @@ plot_reg_res_nproj<-function (fit, plot_data) {
 
 
 
-
-#### Figure 4 ####
-####  Box figures #### 
+#####  Figure 3 ##### 
 # updated: January 31 2022
 
 
@@ -395,18 +389,6 @@ library(countrycode)
 library(gridExtra)
 library(ggsci)
 library(ggpubr)
-
-data<-read.csv("~/GitHub/Citizenscience_paper/CitSci_bio_monitoring1/data/data_clean_nov10.csv")
-data$Country<-str_to_title(data$Country)
-#data$Countrycode<-countrycode(data$Country_caps, origin = "country.name", destination = "ioc")
-#data$Countrycode<-ifelse(is.na(data$Countrycode), data$Country_caps, data$Countrycode)
-
-# group data by country
-by_country<-data %>%
-  group_by(Country) %>% 
-  summarise(n_proj = n_distinct(citsci_proj_ID),
-            n_studies = n_distinct(row_ID),
-            n_Articles = n_distinct(Article))
 
 #kendall correlation (non parametric)
 cor.test( ~ n_proj + n_Articles,
@@ -427,7 +409,6 @@ summary(model_k)
 # visualize residuals (https://drsimonj.svbtle.com/visualising-residuals)
 
 
-
 fit<-lm(n_proj~n_Articles, data = by_country)
 plot_data<-by_country
 
@@ -441,10 +422,12 @@ studres_labels<-filter(plot_data, studres>3 |studres< (-3))
 plot_data<-mutate(plot_data, type = ifelse(studres>3 |studres< (-3), 'Outlier', 'Non-outlier'))
 
 # Get df with points needing labels. 
-USA_lab<-dplyr::filter(plot_data,(Country=="United States"))
-UK_lab<-dplyr::filter(plot_data, (Country=="United Kingdom")) 
-SA_lab<-dplyr::filter(plot_data,(Country=="South Africa"))
-Den_lab<-dplyr::filter(plot_data,(Country=="Denmark"))
+USA_lab<-dplyr::filter(plot_data,(Country=="united states"))
+UK_lab<-dplyr::filter(plot_data, (Country=="united kingdom")) 
+SA_lab<-dplyr::filter(plot_data,(Country=="south africa"))
+Den_lab<-dplyr::filter(plot_data,(Country=="denmark"))
+
+
 
 regression<- ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit$model)[1])) + 
   geom_smooth(method = "lm", se = TRUE, color = "black") + #model line with grey se
@@ -456,32 +439,26 @@ regression<- ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit
   
   xlim(c(-12,85))+
   
-  theme_classic(base_family = "sans") + # Add theme for cleaner look
-  theme(legend.position = "right",
-        axis.title.x = element_text(size = 12),
-        axis.title.y = element_text(size = 12),
-        axis.text.x = element_text(size = 12),
-        axis.text.y = element_text(size = 12))+
+  theme(legend.position = "right")+
   
-  
-  geom_text(data = USA_lab, aes(label = Country),
+  geom_text(data = USA_lab, aes(label = Country %>% str_to_title()),
             family = "sans",
-            size = 3.5,
+            size = 5,
             hjust =1.05)+
   
-  geom_text(data = UK_lab, aes(label = Country),
+  geom_text(data = UK_lab, aes(label = Country %>% str_to_title()),
             family = "sans",
-            size = 3.5,
+            size = 5,
             hjust =1.1)+
   
-  geom_text(data = SA_lab, aes(label = Country),
+  geom_text(data = SA_lab, aes(label = Country %>% str_to_title()),
             family = "sans",
-            size = 3.5,
+            size = 5,
             hjust =-.05)+
   
-  geom_text(data = Den_lab, aes(label = Country),
+  geom_text(data = Den_lab, aes(label = Country %>% str_to_title()),
             family = "sans",
-            size = 3.5,
+            size = 5,
             vjust =-0.6,
             hjust = .9)+
   
@@ -496,13 +473,13 @@ regression<- ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit
 
 regression
 
+png("figures/figure3.png", height = 12, width = 8, units="in", res = 300)
+regression
+dev.off()
 
-ggsave(filename = "figures/Box_regression.png",
-       width =5, height = 6,
-       dpi=300) 
+#gitpush
 
-
-
+##### Box figs #####
 
 # format data long version for Denmark and SA 
 # identify species of conservation concern.
